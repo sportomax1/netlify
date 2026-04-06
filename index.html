@@ -2,63 +2,145 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>SPA MVP</title>
+  <title>Arcade Classics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body { font-family: Arial; margin: 0; padding: 20px; }
-    nav button { margin-right: 10px; padding: 10px; cursor: pointer; }
-    .view { display: none; margin-top: 20px; }
-    .active { display: block; }
+    body {
+      margin: 0;
+      font-family: 'Courier New', monospace;
+      background: black;
+      color: #00ffcc;
+      text-align: center;
+    }
+    h1 {
+      margin: 10px;
+      text-shadow: 0 0 10px #00ffcc;
+    }
+    nav button {
+      margin: 5px;
+      padding: 10px;
+      background: #111;
+      color: #00ffcc;
+      border: 1px solid #00ffcc;
+      cursor: pointer;
+    }
+    canvas {
+      background: #000;
+      border: 2px solid #00ffcc;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
-  <h1>🚀 My SPA MVP</h1>
+<h1>🕹️ Arcade Classics</h1>
 
-  <nav>
-    <button onclick="navigate('home')">Home</button>
-    <button onclick="navigate('about')">About</button>
-    <button onclick="navigate('data')">Data</button>
-  </nav>
+<nav>
+  <button onclick="startGame('snake')">Snake</button>
+  <button onclick="startGame('pong')">Pong</button>
+</nav>
 
-  <div id="home" class="view active">
-    <h2>Home</h2>
-    <p>Welcome to your MVP 🚀</p>
-  </div>
+<canvas id="game" width="400" height="400"></canvas>
 
-  <div id="about" class="view">
-    <h2>About</h2>
-    <p>This is a simple SPA running on Vercel.</p>
-  </div>
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
 
-  <div id="data" class="view">
-    <h2>Data</h2>
-    <button onclick="loadData()">Load Data</button>
-    <pre id="output"></pre>
-  </div>
+let gameLoop;
+let currentGame;
 
-  <script>
-    function navigate(view) {
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.getElementById(view).classList.add('active');
-      history.pushState({}, '', '#' + view);
-    }
+function startGame(game) {
+  clearInterval(gameLoop);
+  currentGame = game;
+  if (game === 'snake') initSnake();
+  if (game === 'pong') initPong();
+}
 
-    function loadData() {
-      const data = {
-        name: "Kevin MVP",
-        time: new Date().toLocaleString(),
-        random: Math.floor(Math.random() * 100)
-      };
-      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
-    }
+/* ================= SNAKE ================= */
+let snake, food, dx, dy;
 
-    // Handle back/forward navigation
-    window.onpopstate = () => {
-      const view = location.hash.replace('#', '') || 'home';
-      navigate(view);
+function initSnake() {
+  snake = [{x: 200, y: 200}];
+  dx = 20;
+  dy = 0;
+  food = {x: 100, y: 100};
+  gameLoop = setInterval(drawSnake, 100);
+}
+
+function drawSnake() {
+  ctx.clearRect(0,0,400,400);
+
+  snake.unshift({x: snake[0].x + dx, y: snake[0].y + dy});
+
+  if (snake[0].x === food.x && snake[0].y === food.y) {
+    food = {
+      x: Math.floor(Math.random()*20)*20,
+      y: Math.floor(Math.random()*20)*20
     };
-  </script>
+  } else {
+    snake.pop();
+  }
+
+  ctx.fillStyle = "lime";
+  snake.forEach(s => ctx.fillRect(s.x, s.y, 18, 18));
+
+  ctx.fillStyle = "red";
+  ctx.fillRect(food.x, food.y, 18, 18);
+}
+
+document.addEventListener('keydown', e => {
+  if (currentGame !== 'snake') return;
+  if (e.key === 'ArrowUp') {dx=0;dy=-20;}
+  if (e.key === 'ArrowDown') {dx=0;dy=20;}
+  if (e.key === 'ArrowLeft') {dx=-20;dy=0;}
+  if (e.key === 'ArrowRight') {dx=20;dy=0;}
+});
+
+/* ================= PONG ================= */
+let paddleY, ballX, ballY, ballDX, ballDY;
+
+function initPong() {
+  paddleY = 150;
+  ballX = 200;
+  ballY = 200;
+  ballDX = 3;
+  ballDY = 3;
+  gameLoop = setInterval(drawPong, 16);
+}
+
+function drawPong() {
+  ctx.clearRect(0,0,400,400);
+
+  // paddle
+  ctx.fillStyle = "#00ffcc";
+  ctx.fillRect(10, paddleY, 10, 80);
+
+  // ball
+  ctx.fillRect(ballX, ballY, 10, 10);
+
+  ballX += ballDX;
+  ballY += ballDY;
+
+  // walls
+  if (ballY < 0 || ballY > 390) ballDY *= -1;
+
+  // paddle collision
+  if (ballX < 20 && ballY > paddleY && ballY < paddleY + 80) {
+    ballDX *= -1;
+  }
+
+  // reset
+  if (ballX < 0 || ballX > 400) {
+    ballX = 200;
+    ballY = 200;
+  }
+}
+
+document.addEventListener('mousemove', e => {
+  if (currentGame !== 'pong') return;
+  paddleY = e.clientY - canvas.offsetTop - 40;
+});
+</script>
 
 </body>
 </html>
