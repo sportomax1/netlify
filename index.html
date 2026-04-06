@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SPA MVP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: Arial; margin: 0; padding: 20px; }
+    nav button { margin-right: 10px; padding: 10px; cursor: pointer; }
+    .view { display: none; margin-top: 20px; }
+    .active { display: block; }
+  </style>
+</head>
+<body>
+
+  <h1>🚀 My SPA MVP</h1>
+
+  <nav>
+    <button onclick="navigate('home')">Home</button>
+    <button onclick="navigate('about')">About</button>
+    <button onclick="navigate('data')">Data</button>
+  </nav>
+
+  <div id="home" class="view active">
+    <h2>Home</h2>
+    <p>Welcome to your MVP 🚀</p>
+  </div>
+
+  <div id="about" class="view">
+    <h2>About</h2>
+    <p>This is a simple SPA running on Vercel.</p>
+  </div>
+
+  <div id="data" class="view">
+    <h2>Data</h2>
+    <button onclick="loadData()">Load Data</button>
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    function navigate(view) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(view).classList.add('active');
+      history.pushState({}, '', '#' + view);
+    }
+
+    function loadData() {
+      const data = {
+        name: "Kevin MVP",
+        time: new Date().toLocaleString(),
+        random: Math.floor(Math.random() * 100)
+      };
+      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+    }
+
+    // Handle back/forward navigation
+    window.onpopstate = () => {
+      const view = location.hash.replace('#', '') || 'home';
+      navigate(view);
+    };
+  </script>
+
+</body>
+</html>
